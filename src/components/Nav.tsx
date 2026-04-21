@@ -54,7 +54,10 @@ export default async function Nav({ role }: { role: "student" | "counselor" }) {
             >
               {l.label}
               {"unread" in l && l.unread !== undefined && l.unread > 0 && (
-                <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[color:var(--color-warning)] px-1.5 text-[10px] font-semibold text-white">
+                <span
+                  title="Unread messages — refreshes on page load"
+                  className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[color:var(--color-warning)] px-1.5 text-[10px] font-semibold text-white"
+                >
                   {l.unread}
                 </span>
               )}

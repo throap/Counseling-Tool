@@ -70,6 +70,216 @@ a {
   --tw-ring-offset-color: var(--color-bg);
 }
 
+/* Counselor Time-Off slot grid */
+.slot-btn {
+  padding: 8px 6px;
+  border-radius: 9px;
+  border: 1.5px solid #e2e8f0;
+  background: white;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.13s;
+}
+.slot-btn.blocked {
+  border-color: #7A9E7E;
+  background: #7A9E7E;
+  color: white;
+}
+.slot-btn.has-booking {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.slot-btn:hover:not(.has-booking):not(:disabled) {
+  border-color: #7A9E7E;
+  background: #f0f5f0;
+}
+.slot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.quick-btns {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.quick-btn {
+  padding: 5px 12px;
+  border-radius: 7px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.13s;
+}
+.quick-btn:hover {
+  border-color: #7A9E7E;
+  color: #7A9E7E;
+}
+.allday-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 11px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.allday-toggle.active {
+  border-color: #7A9E7E;
+  background: #f0f5f0;
+}
+
+/* Counselor Dashboard — today's schedule rows */
+.schedule-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  background: white;
+  transition: background 0.1s;
+}
+.schedule-row:last-child { border-bottom: none; }
+.schedule-row:hover { background: #f8fafc; }
+.schedule-row.is-pinned { background: #fffbeb; }
+.schedule-time {
+  min-width: 80px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #1e3a5f;
+  padding-top: 2px;
+  flex-shrink: 0;
+}
+.schedule-badge {
+  font-size: 0.64rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.schedule-badge.open      { background: #dcfce7; color: #16a34a; }
+.schedule-badge.booked    { background: #dbeafe; color: #2563eb; }
+.schedule-badge.cancelled { background: #fee2e2; color: #dc2626; }
+.schedule-info { flex: 1; min-width: 0; }
+.schedule-name   { font-size: 0.86rem; font-weight: 700; color: #1e293b; }
+.schedule-meta   { font-size: 0.72rem; color: #64748b; margin-top: 1px; }
+.schedule-reason { font-size: 0.72rem; color: #6B8CAE; font-weight: 500; margin-top: 2px; }
+.schedule-notes  { font-size: 0.70rem; color: #94a3b8; font-style: italic; margin-top: 2px; }
+
+/* Counselor Dashboard — pinned cards */
+.pinned-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+.pinned-card {
+  background: #fffbeb;
+  border: 1.5px solid #fcd34d;
+  border-radius: 13px;
+  padding: 14px 16px;
+}
+.pinned-category-badge {
+  font-size: 0.67rem;
+  font-weight: 700;
+  color: #d97706;
+  background: #fef3c7;
+  border-radius: 6px;
+  padding: 2px 7px;
+}
+.pinned-datetime { font-size: 0.72rem; color: #64748b; }
+.pinned-name {
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 2px;
+  margin-top: 4px;
+}
+.pinned-reason {
+  font-size: 0.74rem;
+  color: #92400e;
+  font-weight: 500;
+  margin-top: 4px;
+}
+.pinned-notes {
+  font-size: 0.71rem;
+  color: #78716c;
+  font-style: italic;
+  margin-top: 3px;
+  line-height: 1.45;
+}
+
+/* Student Calendar — day dot indicators.
+   Classes rather than data-state because react-big-calendar's
+   dayPropGetter can only set className. */
+.cal-day { position: relative; }
+.cal-day::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+.cal-day.state-available::after    { background: #7A9E7E; }
+.cal-day.state-fully-booked::after { background: #dc2626; }
+.cal-day.state-unavailable::after  { background: #d97706; }
+.cal-day.state-empty::after        { display: none; }
+.rbc-today.cal-day.state-available::after { background: #86efac; }
+
+/* Counselor Dashboard — stat cards with accent top border */
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 18px 16px 14px;
+  box-shadow: 0 2px 16px rgba(15, 23, 42, 0.07);
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 14px 14px 0 0;
+}
+.stat-card.accent-sage::before  { background: #7A9E7E; }
+.stat-card.accent-blue::before  { background: #6B8CAE; }
+.stat-card.accent-amber::before { background: #d97706; }
+.stat-card.accent-gray::before  { background: #64748b; }
+.stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1;
+}
+.stat-label {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 /* react-big-calendar global tweaks */
 .rbc-calendar {
   font-family: 'Inter', sans-serif;

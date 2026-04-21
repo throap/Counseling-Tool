@@ -134,5 +134,45 @@ src/
 - Messaging role-pair enforcement is done server-side in `/api/messages/send` in addition to RLS (students can only message counselors; counselors can only message students they have/had an appointment with)
 - Invite codes are validated server-side with the service-role client so RLS can lock the table to admin-only writes
 
+## Admin tasks
+
+### Generate counselor invite codes
+
+Preferred: sign in as a user whose `users.role = 'admin'`, then visit
+[`/admin/invite-codes`](./src/app/admin/invite-codes). Pick an expiry,
+optionally override the suggested code, and click **Generate**.
+
+Fallback (SQL editor — works without the admin UI):
+
+```sql
+insert into public.invite_codes (code, expires_at)
+values ('INVITE-XXXX', now() + interval '7 days');
+```
+
+### Grant the `admin` role to a user
+
+The `users.role` column is constrained to `'student' | 'counselor' | 'admin'`
+(see `supabase/migrations/0008_admin_role.sql`). Promote an existing user:
+
+```sql
+update public.users set role = 'admin' where email = 'you@school.edu';
+```
+
+## Known issues
+
+**Dependency advisories** — `npm audit` reports remaining advisories that
+cannot be fixed without a major version bump:
+
+- `next@14.2.35` — a handful of DoS/smuggling advisories only fixed in
+  `next@15.x`. Upgrading to 15.x is a breaking change (React 19, new caching
+  semantics) and should be done as a deliberate project. Revisit when
+  scheduling a Next.js 15 migration.
+- `eslint-config-next` / `@next/eslint-plugin-next` / `glob` (transitive) —
+  only fixable by bumping `eslint-config-next` to `16.x`, which is major and
+  coupled to the Next.js upgrade above. Lint-only, does not affect runtime.
+
+Do not run `npm audit fix --force` — it will rewrite `next` across major
+versions and the app will not build.
+
 ## License
 MIT

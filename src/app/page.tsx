@@ -16,5 +16,6 @@ export default async function Home() {
     .single();
 
   if (profile?.role === "counselor") redirect("/counselor/dashboard");
+  if (profile?.role === "admin") redirect("/admin/invite-codes");
   redirect("/student/dashboard");
 }

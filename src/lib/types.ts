@@ -1,4 +1,4 @@
-export type Role = "student" | "counselor";
+export type Role = "student" | "counselor" | "admin";
 
 export type AppointmentStatus = "booked" | "cancelled" | "completed";
 

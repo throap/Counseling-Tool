@@ -148,6 +148,31 @@ export default function MessagingView({
           Compose
         </Button>
         <Card padding="none" className="overflow-hidden">
+          <div className="flex items-center gap-2 border-b border-line bg-surface-muted/60 px-4 py-2 text-xs text-ink-subtle">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span>Messages refresh when you navigate to this page.</span>
+            <button
+              type="button"
+              onClick={() => router.refresh()}
+              className="ml-auto text-xs font-medium text-seablue-dark hover:underline"
+            >
+              Refresh now
+            </button>
+          </div>
           {conversations.length === 0 ? (
             <p className="p-4 text-sm text-ink-muted">No conversations yet.</p>
           ) : (

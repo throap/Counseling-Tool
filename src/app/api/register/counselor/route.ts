@@ -1,6 +1,8 @@
 // Counselor self-registration via invite code.
 //
-// To generate a new counselor invite code, run in the Supabase SQL Editor:
+// To generate a new invite code, prefer the admin UI at /admin/invite-codes
+// (sign in as a user whose users.role = 'admin'). As a fallback the SQL
+// snippet below works too:
 //
 //   insert into public.invite_codes (code, expires_at)
 //   values ('INVITE-XXXX', now() + interval '7 days');

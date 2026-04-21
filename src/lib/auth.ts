@@ -28,7 +28,9 @@ export async function requireRole(role: Role): Promise<SessionProfile> {
   if (!profile) redirect("/login");
 
   if (profile.role !== role) {
-    redirect(profile.role === "counselor" ? "/counselor/dashboard" : "/student/dashboard");
+    if (profile.role === "counselor") redirect("/counselor/dashboard");
+    if (profile.role === "admin") redirect("/admin/invite-codes");
+    redirect("/student/dashboard");
   }
 
   let counselorId: string | null = null;
@@ -49,4 +51,27 @@ export async function requireRole(role: Role): Promise<SessionProfile> {
     studentId: profile.student_id,
     counselorId,
   };
+}
+
+/**
+ * Silently redirect non-admins to the landing page. Returns the admin's
+ * userId. "Security through obscurity" is fine here — the admin console is
+ * not a secret, but we don't advertise the route or the role to others.
+ */
+export async function requireAdmin(): Promise<{ userId: string; name: string; email: string }> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/");
+
+  const { data: profile } = await supabase
+    .from("users")
+    .select("id, name, email, role")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile || profile.role !== "admin") redirect("/");
+
+  return { userId: profile.id, name: profile.name, email: profile.email };
 }
