@@ -1,17 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   color-scheme: light;
+
+  /* Surfaces */
+  --color-bg:             #FAFAF7; /* off-white app background */
+  --color-surface:        #FFFFFF; /* cards, modals */
+  --color-surface-muted:  #F3F2ED; /* chips, hover bg */
+
+  /* Text */
+  --color-text:           #3A3A3A; /* warm gray body */
+  --color-text-muted:     #6B6B6B;
+  --color-text-subtle:    #8A8A8A;
+
+  /* Accents */
+  --color-sage:           #7A9E7E;
+  --color-sage-dark:      #5E7F62;
+  --color-sage-light:     #E6EEE7;
+  --color-blue:           #6B8CAE;
+  --color-blue-dark:      #4F7091;
+  --color-blue-light:     #E3EAF2;
+
+  /* Semantic */
+  --color-success:        #7A9E7E;
+  --color-warning:        #C9A24C;
+  --color-warning-light:  #F7EED8;
+  --color-danger:         #C97A6B;
+  --color-danger-light:   #F6E3DE;
+  --color-border:         #E7E5DF;
+  --color-border-strong:  #D6D3CB;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --shadow-soft:   0 1px 2px rgba(58, 58, 58, 0.04), 0 2px 8px rgba(58, 58, 58, 0.04);
+  --shadow-lifted: 0 2px 4px rgba(58, 58, 58, 0.05), 0 8px 24px rgba(58, 58, 58, 0.08);
 }
 
 html,
 body {
-  @apply bg-slate-50 text-slate-900;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+* {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 button,
 a {
-  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2;
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+  --tw-ring-color: var(--color-sage);
+  --tw-ring-offset-color: var(--color-bg);
+}
+
+/* react-big-calendar global tweaks */
+.rbc-calendar {
+  font-family: 'Inter', sans-serif;
+  color: var(--color-text);
+}
+.rbc-toolbar button {
+  color: var(--color-text);
+}
+.rbc-today {
+  background-color: var(--color-sage-light) !important;
+}
+.rbc-event {
+  background-color: var(--color-sage) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 2px 6px !important;
+  font-size: 0.8rem;
+}
+.rbc-off-range-bg {
+  background-color: var(--color-surface-muted) !important;
 }

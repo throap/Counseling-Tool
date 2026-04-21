@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 
 type Tab = "student" | "counselor";
 
@@ -51,9 +53,7 @@ export default function LoginForm() {
     if (profile.role !== tab) {
       await supabase.auth.signOut();
       setPending(false);
-      setError(
-        `This account is registered as a ${profile.role}. Switch the tab above and try again.`,
-      );
+      setError(`This account is registered as a ${profile.role}. Switch the tab above and try again.`);
       return;
     }
 
@@ -80,14 +80,16 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1 text-sm">
+      <div className="grid grid-cols-2 gap-1 rounded-md bg-surface-muted p-1 text-sm">
         {(["student", "counselor"] as Tab[]).map((t) => (
           <button
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            className={`rounded-md py-2 font-medium capitalize transition ${
-              tab === t ? "bg-white text-brand shadow" : "text-slate-600 hover:text-slate-900"
+            className={`rounded-md py-2 font-medium capitalize transition-all ease-smooth ${
+              tab === t
+                ? "bg-surface text-sage-dark shadow-soft"
+                : "text-ink-muted hover:text-ink"
             }`}
           >
             {t}
@@ -95,59 +97,46 @@ export default function LoginForm() {
         ))}
       </div>
 
-      <div>
-        <label className="mb-1 block text-sm font-medium text-slate-700">Email</label>
-        <input
-          type="email"
-          required
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-100"
-        />
-      </div>
+      <Input
+        label="Email"
+        type="email"
+        required
+        autoComplete="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
 
-      <div>
-        <label className="mb-1 block text-sm font-medium text-slate-700">Password</label>
-        <input
-          type="password"
-          required
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-100"
-        />
-      </div>
+      <Input
+        label="Password"
+        type="password"
+        required
+        autoComplete="current-password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
 
       {tab === "student" && (
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">Student ID</label>
-          <input
-            type="text"
-            required
-            value={studentId}
-            onChange={(e) => setStudentId(e.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-100"
-          />
-        </div>
+        <Input
+          label="Student ID"
+          type="text"
+          required
+          value={studentId}
+          onChange={(e) => setStudentId(e.target.value)}
+        />
       )}
 
       {error && (
         <div
           role="alert"
-          className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700 ring-1 ring-rose-200"
+          className="rounded-md bg-danger-light px-4 py-2.5 text-sm text-[color:var(--color-danger)]"
         >
           {error}
         </div>
       )}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-full rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white shadow hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
-      >
+      <Button type="submit" disabled={pending} fullWidth>
         {pending ? "Signing in…" : "Sign in"}
-      </button>
+      </Button>
     </form>
   );
 }

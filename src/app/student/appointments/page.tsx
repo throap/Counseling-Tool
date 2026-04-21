@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function StudentAppointments({
   searchParams,
 }: {
-  searchParams: { cancel?: string };
+  searchParams: { cancel?: string; booked?: string };
 }) {
   const session = await requireRole("student");
   const supabase = createClient();
@@ -16,7 +16,7 @@ export default async function StudentAppointments({
   const { data: appointments } = await supabase
     .from("appointments")
     .select(
-      "id, appointment_date, start_time, status, reason, counselor:counselors!appointments_counselor_id_fkey(id, department, user:users!counselors_user_id_fkey(id, name))",
+      "id, appointment_date, start_time, status, reason, cancelled_by, cancellation_reason, counselor:counselors!appointments_counselor_id_fkey(id, department, user:users!counselors_user_id_fkey(id, name))",
     )
     .eq("student_id", session.userId)
     .order("appointment_date", { ascending: false })
@@ -30,6 +30,8 @@ export default async function StudentAppointments({
     start_time: string;
     status: "booked" | "cancelled" | "completed";
     reason: string | null;
+    cancelled_by: "student" | "counselor" | null;
+    cancellation_reason: string | null;
     counselor:
       | { id: string; department: string; user: { id: string; name: string } | { id: string; name: string }[] | null }
       | { id: string; department: string; user: { id: string; name: string } | { id: string; name: string }[] | null }[]
@@ -45,6 +47,8 @@ export default async function StudentAppointments({
       startTime: a.start_time,
       status: a.status,
       reason: a.reason,
+      cancellationReason: a.cancellation_reason,
+      cancelledBy: a.cancelled_by,
       counselorName: cu?.name ?? "Counselor",
       counselorDepartment: c?.department ?? "",
     };
@@ -56,8 +60,16 @@ export default async function StudentAppointments({
   return (
     <>
       <Nav role="student" />
-      <main className="mx-auto max-w-4xl px-4 py-8">
-        <h1 className="mb-6 text-2xl font-semibold text-slate-900">My appointments</h1>
+      <main className="mx-auto max-w-5xl px-6 py-10">
+        <h1 className="mb-8 font-serif text-3xl text-ink">My appointments</h1>
+        {searchParams.booked === "1" && (
+          <div
+            role="status"
+            className="mb-6 rounded-md bg-sage-light px-4 py-3 text-sm text-sage-dark"
+          >
+            Your appointment is confirmed. Check your email for details.
+          </div>
+        )}
         <AppointmentList upcoming={upcoming} past={past} autoCancelId={searchParams.cancel} />
       </main>
     </>

@@ -1,7 +1,8 @@
 import Nav from "@/components/Nav";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import AvailabilityEditor from "./AvailabilityEditor";
+import AvailabilityTabs from "./AvailabilityTabs";
+import type { UnavailableDateRow } from "@/types/unavailable-dates";
 
 export const dynamic = "force-dynamic";
 
@@ -28,23 +29,30 @@ export default async function AvailabilityPage() {
     .order("day_of_week")
     .order("start_time");
 
+  const { data: timeOff } = await supabase
+    .from("unavailable_dates")
+    .select("id, counselor_id, date, full_day, start_time, end_time, reason, created_at")
+    .eq("counselor_id", session.counselorId)
+    .order("date", { ascending: true });
+
   return (
     <>
       <Nav role="counselor" />
-      <main className="mx-auto max-w-4xl px-4 py-8">
-        <h1 className="mb-2 text-2xl font-semibold text-slate-900">Weekly availability</h1>
-        <p className="mb-6 text-slate-600">
-          Add recurring blocks of time. Students will see 30-minute slots generated from each block.
+      <main className="mx-auto max-w-[1200px] px-4 py-8 sm:px-8">
+        <h1 className="mb-2 font-serif text-3xl text-ink">Availability</h1>
+        <p className="mb-6 text-ink-muted">
+          Set recurring weekly hours and block specific dates when you&rsquo;re off.
         </p>
-        <AvailabilityEditor
+        <AvailabilityTabs
           counselorId={session.counselorId}
-          initial={(availability ?? []).map((a) => ({
+          weeklyInitial={(availability ?? []).map((a) => ({
             id: a.id,
             dayOfWeek: a.day_of_week,
             startTime: a.start_time.slice(0, 5),
             endTime: a.end_time.slice(0, 5),
             slotDuration: a.slot_duration_minutes,
           }))}
+          timeOffInitial={(timeOff ?? []) as UnavailableDateRow[]}
         />
       </main>
     </>

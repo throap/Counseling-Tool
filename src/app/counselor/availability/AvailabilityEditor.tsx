@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { FULL_DAY_NAMES, formatDisplayTime } from "@/lib/slots";
+import { Card } from "@/components/ui/Card";
+import { Input, Select } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 
 interface Block {
   id: string;
@@ -94,99 +97,52 @@ export default function AvailabilityEditor({
   }
 
   return (
-    <div className="space-y-8">
-      <form
-        onSubmit={addBlock}
-        className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:grid-cols-5"
-      >
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600">Day</label>
-          <select
-            value={day}
-            onChange={(e) => setDay(Number(e.target.value))}
-            className="w-full rounded-md border border-slate-300 px-2 py-2 text-sm"
-          >
-            {FULL_DAY_NAMES.map((d, i) => (
-              <option key={d} value={i}>
-                {d}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600">Start</label>
-          <input
-            type="time"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            required
-            className="w-full rounded-md border border-slate-300 px-2 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600">End</label>
-          <input
-            type="time"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            required
-            className="w-full rounded-md border border-slate-300 px-2 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600">Slot (min)</label>
-          <input
+    <div className="space-y-6">
+      <Card>
+        <form onSubmit={addBlock} className="grid grid-cols-1 gap-3 sm:grid-cols-5 sm:items-end">
+          <Select label="Day" value={day} onChange={(e) => setDay(Number(e.target.value))}>
+            {FULL_DAY_NAMES.map((d, i) => <option key={d} value={i}>{d}</option>)}
+          </Select>
+          <Input label="Start" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} required />
+          <Input label="End" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required />
+          <Input
+            label="Slot (min)"
             type="number"
             min={15}
             step={15}
             value={slotDuration}
             onChange={(e) => setSlotDuration(Number(e.target.value))}
-            className="w-full rounded-md border border-slate-300 px-2 py-2 text-sm"
           />
-        </div>
-        <div className="flex items-end">
-          <button
-            type="submit"
-            disabled={pending}
-            className="w-full rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
-          >
+          <Button type="submit" disabled={pending} fullWidth>
             {pending ? "Adding…" : "Add block"}
-          </button>
-        </div>
-      </form>
-
-      {error && (
-        <div
-          role="alert"
-          className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700 ring-1 ring-rose-200"
-        >
-          {error}
-        </div>
-      )}
+          </Button>
+        </form>
+        {error && (
+          <p role="alert" className="mt-3 text-sm text-[color:var(--color-danger)]">
+            {error}
+          </p>
+        )}
+      </Card>
 
       <div className="space-y-3">
         {FULL_DAY_NAMES.map((name, i) => {
           const items = grouped.get(i) ?? [];
           return (
-            <div
-              key={name}
-              className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
-            >
-              <div className="mb-2 font-semibold text-slate-900">{name}</div>
+            <Card key={name} padding="sm">
+              <div className="mb-2 font-serif text-base text-ink">{name}</div>
               {items.length === 0 ? (
-                <p className="text-sm text-slate-400">No availability</p>
+                <p className="text-sm text-ink-subtle">No availability</p>
               ) : (
                 <ul className="flex flex-wrap gap-2">
                   {items.map((b) => (
                     <li
                       key={b.id}
-                      className="flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-sm text-brand-800"
+                      className="flex items-center gap-2 rounded-full bg-sage-light px-3 py-1 text-sm text-sage-dark"
                     >
-                      {formatDisplayTime(b.startTime)} – {formatDisplayTime(b.endTime)} (
-                      {b.slotDuration}m)
+                      {formatDisplayTime(b.startTime)} – {formatDisplayTime(b.endTime)} ({b.slotDuration}m)
                       <button
                         onClick={() => removeBlock(b.id)}
-                        className="rounded-full text-brand-700 hover:text-rose-700"
+                        className="rounded-full text-sage-dark hover:text-[color:var(--color-danger)]"
                         aria-label="Remove"
                       >
                         ×
@@ -195,7 +151,7 @@ export default function AvailabilityEditor({
                   ))}
                 </ul>
               )}
-            </div>
+            </Card>
           );
         })}
       </div>

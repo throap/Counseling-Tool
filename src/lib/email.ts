@@ -74,6 +74,9 @@ interface CancellationPayload {
   counselorName: string;
   date: string;
   startTime: string;
+  cancelledBy: "student" | "counselor";
+  reason: string;
+  urgent: boolean;
 }
 
 export async function sendCancellationNotice(p: CancellationPayload): Promise<void> {
@@ -84,31 +87,71 @@ export async function sendCancellationNotice(p: CancellationPayload): Promise<vo
   }
 
   const when = `${formatDisplayDate(p.date)} at ${formatDisplayTime(p.startTime)}`;
+  const urgentPrefix = p.urgent ? "[URGENT] " : "";
+  const cancellerName = p.cancelledBy === "student" ? p.studentName : p.counselorName;
 
   try {
     await Promise.all([
       resend.emails.send({
         from: fromAddress(),
         to: p.studentEmail,
-        subject: `Appointment cancelled`,
+        subject: `${urgentPrefix}Appointment cancelled`,
         html: `
-          <h2>Appointment cancelled</h2>
-          <p>Your appointment with <strong>${escapeHtml(p.counselorName)}</strong> on ${when} has been cancelled.</p>
+          <h2>${p.urgent ? "Appointment cancelled — short notice" : "Appointment cancelled"}</h2>
+          <p>Your appointment with <strong>${escapeHtml(p.counselorName)}</strong> on ${when} has been cancelled${p.cancelledBy === "counselor" ? " by your counselor" : ""}.</p>
+          <p><strong>Reason:</strong> ${escapeHtml(p.reason)}</p>
           <p>You can book a new time anytime from your <a href="${appUrl()}/student/dashboard">dashboard</a>.</p>
         `,
       }),
       resend.emails.send({
         from: fromAddress(),
         to: p.counselorEmail,
-        subject: `Cancelled: ${p.studentName} on ${formatDisplayDate(p.date)}`,
+        subject: `${urgentPrefix}Cancelled: ${p.studentName} on ${formatDisplayDate(p.date)}`,
         html: `
-          <h2>Appointment cancelled</h2>
-          <p><strong>${escapeHtml(p.studentName)}</strong> cancelled their appointment on ${when}.</p>
+          <h2>${p.urgent ? "Appointment cancelled — short notice" : "Appointment cancelled"}</h2>
+          <p><strong>${escapeHtml(cancellerName)}</strong> cancelled the appointment on ${when}.</p>
+          <p><strong>Reason:</strong> ${escapeHtml(p.reason)}</p>
         `,
       }),
     ]);
   } catch (err) {
     console.error("[email] cancellation notice failed", err);
+  }
+}
+
+interface NewMessagePayload {
+  recipientEmail: string;
+  recipientName: string;
+  senderName: string;
+  subject: string;
+  preview: string;
+  threadUrl: string;
+}
+
+export async function sendNewMessageNotice(p: NewMessagePayload): Promise<void> {
+  const resend = getResend();
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY not set — skipping message notice");
+    return;
+  }
+  try {
+    await resend.emails.send({
+      from: fromAddress(),
+      to: p.recipientEmail,
+      subject: `New message from ${p.senderName}: ${p.subject}`,
+      html: `
+        <h2>You have a new message</h2>
+        <p>Hi ${escapeHtml(p.recipientName)},</p>
+        <p><strong>${escapeHtml(p.senderName)}</strong> sent you a message:</p>
+        <blockquote style="margin: 12px 0; padding: 8px 12px; border-left: 3px solid #7A9E7E; color: #555;">
+          <strong>${escapeHtml(p.subject)}</strong><br/>
+          ${escapeHtml(p.preview)}
+        </blockquote>
+        <p><a href="${p.threadUrl}">Open the conversation</a></p>
+      `,
+    });
+  } catch (err) {
+    console.error("[email] message notice failed", err);
   }
 }
 

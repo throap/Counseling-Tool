@@ -1,117 +1,138 @@
-# Counseling-Tool
-Team O 
-A full-stack web application that allows students to browse school counselors, view available appointment times, and book or cancel counseling sessions — while giving counselors tools to manage their own availability and appointments.
+# CounselConnect
 
-✨ Features
-For Students
+A full-stack scheduling app that lets students book counseling sessions and
+gives counselors tools to manage availability, track appointments, and message
+students.
 
-🔐 Secure login with student ID and email
-🔍 Browse and search counselors by name or department
-📅 View real-time available time slots by week
-✅ Book 30-minute counseling sessions
-❌ Cancel upcoming appointments
-📧 Receive email confirmations for bookings and cancellations
+## Features
 
-For Counselors
+### For students
+- Sign up with email, student ID, school, and SVCte course
+- Browse and search counselors by name or department
+- **Multi-step booking** — contact info → counselor + time + reason → review
+- **Calendar view** — see open slots across one counselor or all counselors side-by-side (color-coded), click to book
+- Cancel appointments with a required reason (10 words minimum); a warning shows if the appointment is less than an hour away
+- **Messaging** — start or continue conversations with any counselor; unread badge in the nav
 
-🗓️ Set recurring weekly availability
-📋 View and manage upcoming appointments
-✔️ Mark sessions as completed
-📧 Get notified by email when students book or cancel
+### For counselors
+- **Self-register** with an admin-issued invite code (`/register/counselor`)
+- Set recurring weekly availability blocks (day, start/end, slot duration)
+- **Time Off tab** — block specific dates or windows; existing-appointment warning
+- Dashboard overview — time-based greeting, pinned appointments, today's list, this-week summary, unread messages, and quick stats
+- Appointments page with **pin toggle** (📌) and URL-param filters (student name, date, reason category, status)
+- Cancel with the same 10-word reason + urgent-email rules as students
+- **Messaging** — reply to any student; compose is limited to students you have or had an appointment with
 
+### Shared
+- Resend email on booking, cancellation (with `[URGENT]` prefix if <1 hour away), and new messages
+- Row Level Security enforced at the database level
+- Double-booking prevented by a unique index on active slots
 
-🛠️ Tech Stack
-LayerTechnologyWhyFrameworkNext.js 14 (App Router)Full-stack React with built-in routing and APILanguageTypeScriptType safety across the entire codebaseDatabaseSupabase (PostgreSQL)Auth, database, and Row Level Security in oneStylingTailwind CSSFast, responsive, utility-first stylingEmailResendReliable transactional email APIDeploymentVercelZero-config deployment for Next.js
+## Tech stack
+- Next.js 14 (App Router) + TypeScript
+- Supabase (Postgres + Auth + RLS)
+- Tailwind CSS
+- `react-big-calendar` + `date-fns` for the student calendar
+- Resend for transactional email
 
-🗃️ Database Schema
-users           → id, name, email, student_id, role (student | counselor), created_at
-counselors      → id, user_id, bio, department, photo_url
-availability    → id, counselor_id, day_of_week, start_time, end_time, slot_duration_minutes
-appointments    → id, student_id, counselor_id, appointment_date, start_time, status, reason, created_at
-Row Level Security (RLS) rules:
+## Getting started
 
-Students can only read and write their own appointments
-Counselors can only read appointments assigned to them
-Availability is publicly readable so students can see open slots
-Double-booking is prevented at the database level with a unique constraint on (counselor_id, appointment_date, start_time)
+### 1. Install dependencies
 
+```bash
+npm install
+```
 
-🗺️ Pages & Routes
-RouteRoleDescription/loginBothShared login with role-based redirect/student/dashboardStudentBrowse and search counselors/student/book/[counselorId]StudentView slots and book an appointment/student/appointmentsStudentView, manage, and cancel bookings/counselor/dashboardCounselorWeekly view of upcoming appointments/counselor/availabilityCounselorSet recurring weekly availability/counselor/appointmentsCounselorFull appointment history
+### 2. Environment variables
 
-🚀 Getting Started
-Prerequisites
+Copy `.env.local.example` to `.env.local` and fill in:
 
-Node.js 18+
-A Supabase account (free)
-A Resend account (free)
+```
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...          # required for /signup and /register/counselor
+RESEND_API_KEY=...                     # required for email notifications
+RESEND_FROM_EMAIL=Counseling <no-reply@yourschool.edu>
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
 
-1. Clone the repository
-bashgit clone https://github.com/YOUR_USERNAME/counselconnect.git
-cd counselconnect
-2. Install dependencies
-bashnpm install
-3. Set up environment variables
-Create a .env.local file in the root of the project:
-envNEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-RESEND_API_KEY=your_resend_api_key
+### 3. Run the schema and migrations
 
-⚠️ Never commit .env.local to version control. It is already listed in .gitignore.
+In the Supabase SQL editor, run in order:
 
-4. Set up the database
-Run the SQL schema file in your Supabase dashboard (SQL Editor):
-bash# Schema file is located at:
-/supabase/schema.sql
-5. Seed sample data (optional)
-bashnpm run seed
-This creates 3 sample counselors, their weekly availability, and 2 student accounts for testing.
-6. Run the development server
-bashnpm run dev
-Open http://localhost:3000 in your browser.
+1. `supabase/schema.sql` (base schema + RLS)
+2. Every file in `supabase/migrations/` in order (0001 → 0007)
 
-📧 Email Notifications
-This app uses Resend to send transactional emails. Students receive a confirmation when they book or cancel, and counselors are notified of any changes to their schedule.
-To test emails locally, create a free Resend account and add your API key to .env.local. You can send to any email address from the Resend sandbox.
+Each migration is idempotent — safe to re-run.
 
-🔒 Security
+### 4. Seed sample data (optional)
 
-All routes are protected by Supabase Auth session checks
-Row Level Security (RLS) is enforced at the database level — users cannot access data that isn't theirs even if they manipulate API calls
-Student IDs are validated against the users table on login
-Environment variables are never exposed to the client (service role key is server-only)
+```bash
+npm run seed
+```
 
+Creates sample counselors, availability, and student accounts for testing.
 
-📁 Project Structure
-counselconnect/
-├── app/                    # Next.js App Router pages
+### 5. Start the dev server
+
+```bash
+npm run dev
+```
+
+Open http://localhost:3000.
+
+## Generating counselor invite codes
+
+Counselors register themselves at `/register/counselor` using an invite code.
+To issue one, run this in the Supabase SQL editor:
+
+```sql
+insert into public.invite_codes (code, expires_at)
+values ('INVITE-XXXX', now() + interval '7 days');
+```
+
+You can share the code out of band (email, chat). The code is single-use and
+expires at the timestamp above.
+
+## Project layout
+
+```
+src/
+├── app/
+│   ├── api/                        # API routes (booking, cancel, signup, messages, register/counselor)
 │   ├── login/
+│   ├── signup/                     # student self-registration
+│   ├── register/counselor/         # counselor self-registration with invite code
 │   ├── student/
-│   │   ├── dashboard/
-│   │   ├── book/[counselorId]/
-│   │   └── appointments/
+│   │   ├── dashboard/              # browse counselors
+│   │   ├── book/                   # 3-step booking flow (supports ?counselorId=&date=&time= prefill)
+│   │   ├── calendar/               # react-big-calendar with single/all-counselors toggle
+│   │   ├── appointments/           # upcoming + past, cancel dialog
+│   │   └── messages/
 │   └── counselor/
-│       ├── dashboard/
-│       ├── availability/
-│       └── appointments/
-├── components/             # Reusable UI components
-├── lib/                    # Supabase client, utility functions
-├── supabase/               # Schema SQL and seed script
-└── types/                  # TypeScript types for DB tables
+│       ├── dashboard/              # hero + pinned + today + week + unread + quick stats
+│       ├── availability/           # weekly schedule + Time Off tab
+│       ├── appointments/           # pin toggle + URL-param filters
+│       └── messages/
+├── components/
+│   ├── ui/                         # Button, Card, Input/Textarea/Select, Badge, Modal
+│   └── messaging/                  # MessagingView shared by student + counselor messages pages
+├── lib/
+│   ├── supabase/                   # browser + server + admin clients + auth middleware
+│   ├── slots.ts                    # slot generator (availability − booked − unavailable)
+│   ├── email.ts                    # Resend templates (booking, cancellation, new message)
+│   └── messages.ts                 # conversation grouping helper
+├── types/                          # table-specific types
+└── middleware.ts                   # protects /student and /counselor routes
+```
 
-🤝 Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you'd like to change.
+## Security
 
-Fork the repository
-Create a feature branch (git checkout -b feature/your-feature)
-Commit your changes (git commit -m 'Add your feature')
-Push to the branch (git push origin feature/your-feature)
-Open a Pull Request
+- Every protected route (`/student/*`, `/counselor/*`) checks session via `requireRole()`
+- Row Level Security enforces scope at the database level — users cannot read or mutate data outside their role
+- `SUPABASE_SERVICE_ROLE_KEY` is server-only; never shipped to the client
+- Messaging role-pair enforcement is done server-side in `/api/messages/send` in addition to RLS (students can only message counselors; counselors can only message students they have/had an appointment with)
+- Invite codes are validated server-side with the service-role client so RLS can lock the table to admin-only writes
 
-
-📄 License
-This project is licensed under the MIT License.
-
-🙏 Acknowledgements
-Built for school counseling departments to make mental health and academic support more accessible to students.
+## License
+MIT

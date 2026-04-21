@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { Card } from "./ui/Card";
+import { Badge } from "./ui/Badge";
+import { Button } from "./ui/Button";
 
 interface Props {
   id: string;
@@ -20,37 +23,36 @@ export default function CounselorCard({
   const initial = name.charAt(0).toUpperCase();
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
-      <div className="flex items-start gap-4">
-        {photoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={photoUrl}
-            alt={name}
-            className="h-14 w-14 rounded-full object-cover ring-2 ring-brand-100"
-          />
-        ) : (
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-100 text-xl font-semibold text-brand-700">
-            {initial}
-          </div>
-        )}
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-slate-900">{name}</h3>
-          <p className="text-sm text-brand-700">{department}</p>
+    <Card padding="lg" className="flex flex-col items-center text-center">
+      {photoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={photoUrl}
+          alt={name}
+          className="mb-4 h-20 w-20 rounded-full object-cover ring-2 ring-sage-light"
+        />
+      ) : (
+        <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-sage-light text-2xl font-medium text-sage-dark">
+          {initial}
         </div>
+      )}
+      <h3 className="font-serif text-xl text-ink">{name}</h3>
+      <div className="mt-2">
+        <Badge tone="sage">{department}</Badge>
       </div>
-      {bio && <p className="text-sm text-slate-600">{bio}</p>}
-      <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-sm">
-        <span className="text-slate-500">
-          {nextAvailable ? `Next open: ${nextAvailable}` : "Availability on next page"}
-        </span>
-        <Link
-          href={`/student/book/${id}`}
-          className="rounded-md bg-brand px-3 py-1.5 font-medium text-white hover:bg-brand-700"
-        >
-          Book
+
+      {bio && <p className="mt-3 text-sm text-ink-muted">{bio}</p>}
+
+      <div className="mt-auto w-full pt-6">
+        {nextAvailable && (
+          <p className="mb-3 text-xs text-ink-subtle">
+            Next available: {nextAvailable}
+          </p>
+        )}
+        <Link href={`/student/book?counselorId=${id}`} className="block">
+          <Button fullWidth>Book Session</Button>
         </Link>
       </div>
-    </div>
+    </Card>
   );
 }

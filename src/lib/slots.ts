@@ -1,4 +1,5 @@
 import type { AvailabilityRow, AppointmentRow } from "./types";
+import type { UnavailableDateRow } from "@/types/unavailable-dates";
 
 export interface Slot {
   date: string; // YYYY-MM-DD
@@ -53,14 +54,40 @@ export function weekDates(start: Date): Date[] {
   return days;
 }
 
+function toMinutes(hhmm: string): number {
+  const { h, m } = parseTime(hhmm);
+  return h * 60 + m;
+}
+
+function isBlocked(
+  dateStr: string,
+  startHHMM: string,
+  duration: number,
+  unavailable: UnavailableDateRow[],
+): boolean {
+  const slotStart = toMinutes(startHHMM);
+  const slotEnd = slotStart + duration;
+  for (const u of unavailable) {
+    if (u.date !== dateStr) continue;
+    if (u.full_day) return true;
+    if (!u.start_time || !u.end_time) continue;
+    const blockStart = toMinutes(u.start_time.slice(0, 5));
+    const blockEnd = toMinutes(u.end_time.slice(0, 5));
+    if (slotStart < blockEnd && slotEnd > blockStart) return true;
+  }
+  return false;
+}
+
 /**
  * Generate bookable slots for a counselor across a given week.
- * Excludes slots already booked (status = 'booked') and slots in the past.
+ * Excludes slots already booked (status = 'booked'), slots in the past,
+ * and slots covered by the counselor's unavailable_dates entries.
  */
 export function generateSlots(
   availability: AvailabilityRow[],
   booked: Pick<AppointmentRow, "appointment_date" | "start_time" | "status">[],
   weekStart: Date,
+  unavailable: UnavailableDateRow[] = [],
   now: Date = new Date(),
 ): Slot[] {
   const bookedSet = new Set(
@@ -84,6 +111,7 @@ export function generateSlots(
         const startHHMM = addMinutes(block.start_time, i * dur);
         const key = `${dateStr}|${startHHMM}`;
         if (bookedSet.has(key)) continue;
+        if (isBlocked(dateStr, startHHMM, dur, unavailable)) continue;
 
         const slotDate = new Date(`${dateStr}T${startHHMM}:00`);
         if (slotDate.getTime() <= now.getTime()) continue;

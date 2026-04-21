@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "School Counseling Appointments",
+  title: "CounselConnect",
   description: "Book and manage counseling sessions at your school.",
 };
 

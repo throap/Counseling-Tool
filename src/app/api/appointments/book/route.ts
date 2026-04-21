@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { sendBookingConfirmation } from "@/lib/email";
 import { generateSlots, startOfWeek } from "@/lib/slots";
-import type { AvailabilityRow } from "@/lib/types";
+import type { AvailabilityRow, ReasonCategory } from "@/lib/types";
+import type { UnavailableDateRow } from "@/types/unavailable-dates";
+import { REASON_CATEGORIES } from "@/lib/types";
+
+const PHONE_REGEX = /^[+]?[\d\s().-]{7,}$/;
 
 export async function POST(req: Request) {
   const supabase = createClient();
@@ -17,11 +21,27 @@ export async function POST(req: Request) {
     counselorId?: string;
     appointmentDate?: string;
     startTime?: string;
-    reason?: string | null;
+    studentName?: string;
+    studentPhone?: string;
+    reasonCategory?: string;
+    reason?: string;
+    additionalNotes?: string | null;
   } | null;
 
   if (!body?.counselorId || !body.appointmentDate || !body.startTime) {
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    return NextResponse.json({ error: "Missing appointment details." }, { status: 400 });
+  }
+  if (!body.studentPhone || !PHONE_REGEX.test(body.studentPhone.trim())) {
+    return NextResponse.json({ error: "Valid phone number is required." }, { status: 400 });
+  }
+  if (!body.reasonCategory || !REASON_CATEGORIES.includes(body.reasonCategory as ReasonCategory)) {
+    return NextResponse.json({ error: "Please choose a reason category." }, { status: 400 });
+  }
+  if (!body.reason || body.reason.trim().length < 20) {
+    return NextResponse.json(
+      { error: "Description must be at least 20 characters." },
+      { status: 400 },
+    );
   }
 
   const { data: profile } = await supabase
@@ -49,12 +69,22 @@ export async function POST(req: Request) {
     .select("id, counselor_id, day_of_week, start_time, end_time, slot_duration_minutes")
     .eq("counselor_id", body.counselorId);
 
-  if (!isValidSlot(body.appointmentDate, body.startTime, (availability ?? []) as AvailabilityRow[])) {
-    return NextResponse.json({ error: "Slot is outside of counselor availability" }, { status: 400 });
+  const { data: unavailable } = await supabase
+    .from("unavailable_dates")
+    .select("id, counselor_id, date, full_day, start_time, end_time, reason, created_at")
+    .eq("counselor_id", body.counselorId);
+
+  if (
+    !isValidSlot(
+      body.appointmentDate,
+      body.startTime,
+      (availability ?? []) as AvailabilityRow[],
+      (unavailable ?? []) as UnavailableDateRow[],
+    )
+  ) {
+    return NextResponse.json({ error: "Slot is unavailable" }, { status: 400 });
   }
 
-  // Unique partial index on (counselor_id, appointment_date, start_time) where status='booked'
-  // prevents double-booking even under concurrent requests.
   const { data: inserted, error: insertError } = await supabase
     .from("appointments")
     .insert({
@@ -62,8 +92,11 @@ export async function POST(req: Request) {
       counselor_id: body.counselorId,
       appointment_date: body.appointmentDate,
       start_time: body.startTime,
-      reason: body.reason ?? null,
+      reason: body.reason.trim(),
       status: "booked",
+      student_phone: body.studentPhone.trim(),
+      reason_category: body.reasonCategory,
+      additional_notes: body.additionalNotes?.trim() || null,
     })
     .select("id")
     .single();
@@ -80,22 +113,27 @@ export async function POST(req: Request) {
   if (counselorUser?.email) {
     await sendBookingConfirmation({
       studentEmail: profile.email,
-      studentName: profile.name,
+      studentName: body.studentName?.trim() || profile.name,
       counselorEmail: counselorUser.email,
       counselorName: counselorUser.name,
       appointmentId: inserted.id,
       date: body.appointmentDate,
       startTime: body.startTime,
-      reason: body.reason ?? null,
+      reason: body.reason.trim(),
     });
   }
 
   return NextResponse.json({ id: inserted.id });
 }
 
-function isValidSlot(dateStr: string, startTime: string, avail: AvailabilityRow[]): boolean {
+function isValidSlot(
+  dateStr: string,
+  startTime: string,
+  avail: AvailabilityRow[],
+  unavailable: UnavailableDateRow[],
+): boolean {
   const [y, m, d] = dateStr.split("-").map(Number);
   const date = new Date(y, m - 1, d);
-  const slots = generateSlots(avail, [], startOfWeek(date));
+  const slots = generateSlots(avail, [], startOfWeek(date), unavailable);
   return slots.some((s) => s.date === dateStr && s.startTime === startTime);
 }

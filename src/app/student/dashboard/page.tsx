@@ -38,7 +38,6 @@ export default async function StudentDashboard() {
   for (const c of counselorList) {
     const avail = (availability ?? []).filter((a) => a.counselor_id === c.id);
     const taken = (booked ?? []).filter((b) => b.counselor_id === c.id);
-    // Search up to 4 weeks ahead to find the first opening
     for (let weekOffset = 0; weekOffset < 4; weekOffset++) {
       const ws = new Date(thisWeek);
       ws.setDate(thisWeek.getDate() + weekOffset * 7);
@@ -66,10 +65,12 @@ export default async function StudentDashboard() {
   return (
     <>
       <Nav role="student" />
-      <main className="mx-auto max-w-6xl px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-slate-900">Find a counselor</h1>
-          <p className="text-slate-600">Browse by name or department and book an open slot.</p>
+      <main className="mx-auto max-w-6xl px-6 py-10">
+        <div className="mb-8">
+          <h1 className="font-serif text-3xl text-ink">Find a counselor</h1>
+          <p className="mt-2 text-ink-muted">
+            Browse by name or department and book an open slot.
+          </p>
         </div>
         <CounselorList counselors={normalized} />
       </main>

@@ -13,6 +13,10 @@ create table if not exists public.users (
   email text not null unique,
   student_id text unique,
   role text not null check (role in ('student', 'counselor')),
+  first_name text,
+  last_name text,
+  school_name text,
+  svcte_course text,
   created_at timestamptz not null default now()
 );
 
