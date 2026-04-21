@@ -1,86 +1,117 @@
-# School Counseling Appointment Scheduler
+# Counseling-Tool
+Team O 
+A full-stack web application that allows students to browse school counselors, view available appointment times, and book or cancel counseling sessions — while giving counselors tools to manage their own availability and appointments.
 
-Full-stack Next.js 14 + Supabase app for scheduling counseling sessions at a school. Students browse counselors and book sessions; counselors manage availability and appointments.
+✨ Features
+For Students
 
-## Tech stack
+🔐 Secure login with student ID and email
+🔍 Browse and search counselors by name or department
+📅 View real-time available time slots by week
+✅ Book 30-minute counseling sessions
+❌ Cancel upcoming appointments
+📧 Receive email confirmations for bookings and cancellations
 
-- Next.js 14 (App Router) + TypeScript
-- Supabase (Auth + Postgres + RLS)
-- Tailwind CSS
-- Resend (transactional email)
+For Counselors
 
-## Setup
+🗓️ Set recurring weekly availability
+📋 View and manage upcoming appointments
+✔️ Mark sessions as completed
+📧 Get notified by email when students book or cancel
 
-1. **Install dependencies**
-   ```bash
-   npm install
-   ```
 
-2. **Create a Supabase project**
-   - From the Supabase dashboard, copy the project URL, anon key, and service-role key.
-   - Open the SQL editor and run everything in [supabase/schema.sql](supabase/schema.sql).
+🛠️ Tech Stack
+LayerTechnologyWhyFrameworkNext.js 14 (App Router)Full-stack React with built-in routing and APILanguageTypeScriptType safety across the entire codebaseDatabaseSupabase (PostgreSQL)Auth, database, and Row Level Security in oneStylingTailwind CSSFast, responsive, utility-first stylingEmailResendReliable transactional email APIDeploymentVercelZero-config deployment for Next.js
 
-3. **Create env file**
-   ```bash
-   cp .env.local.example .env.local
-   ```
-   Fill in:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY` (server-side only — never expose to the client)
-   - `RESEND_API_KEY` (optional — emails are skipped if unset)
-   - `RESEND_FROM_EMAIL` (e.g. `Counseling <no-reply@yourschool.edu>`)
-   - `NEXT_PUBLIC_APP_URL` (e.g. `http://localhost:3000`)
+🗃️ Database Schema
+users           → id, name, email, student_id, role (student | counselor), created_at
+counselors      → id, user_id, bio, department, photo_url
+availability    → id, counselor_id, day_of_week, start_time, end_time, slot_duration_minutes
+appointments    → id, student_id, counselor_id, appointment_date, start_time, status, reason, created_at
+Row Level Security (RLS) rules:
 
-4. **Seed sample data**
-   ```bash
-   npm run seed
-   ```
-   Creates 3 counselors and 2 students. Default password for all accounts: `Password123!`.
+Students can only read and write their own appointments
+Counselors can only read appointments assigned to them
+Availability is publicly readable so students can see open slots
+Double-booking is prevented at the database level with a unique constraint on (counselor_id, appointment_date, start_time)
 
-5. **Run**
-   ```bash
-   npm run dev
-   ```
 
-## Seeded accounts
+🗺️ Pages & Routes
+RouteRoleDescription/loginBothShared login with role-based redirect/student/dashboardStudentBrowse and search counselors/student/book/[counselorId]StudentView slots and book an appointment/student/appointmentsStudentView, manage, and cancel bookings/counselor/dashboardCounselorWeekly view of upcoming appointments/counselor/availabilityCounselorSet recurring weekly availability/counselor/appointmentsCounselorFull appointment history
 
-**Counselors**
-- `alex.rivera@school.test` — Academic Advising
-- `jordan.kim@school.test` — College Prep
-- `sam.patel@school.test` — Personal Wellness
+🚀 Getting Started
+Prerequisites
 
-**Students**
-- `taylor.morgan@school.test` (Student ID `S100001`)
-- `casey.nguyen@school.test` (Student ID `S100002`)
+Node.js 18+
+A Supabase account (free)
+A Resend account (free)
 
-## Routes
+1. Clone the repository
+bashgit clone https://github.com/YOUR_USERNAME/counselconnect.git
+cd counselconnect
+2. Install dependencies
+bashnpm install
+3. Set up environment variables
+Create a .env.local file in the root of the project:
+envNEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+RESEND_API_KEY=your_resend_api_key
 
-| Path | Role | Purpose |
-| --- | --- | --- |
-| `/login` | public | Tabbed login (student / counselor). Students enter a student ID in addition to password. |
-| `/student/dashboard` | student | Browse counselors; search by name or department. |
-| `/student/book/[counselorId]` | student | Week view of open 30-minute slots; confirm booking with optional reason. |
-| `/student/appointments` | student | Upcoming + past appointments; cancel upcoming ones. |
-| `/counselor/dashboard` | counselor | This week's bookings grouped by day. |
-| `/counselor/availability` | counselor | Add/remove recurring weekly blocks. |
-| `/counselor/appointments` | counselor | Full history; mark sessions completed. |
+⚠️ Never commit .env.local to version control. It is already listed in .gitignore.
 
-## Architecture notes
+4. Set up the database
+Run the SQL schema file in your Supabase dashboard (SQL Editor):
+bash# Schema file is located at:
+/supabase/schema.sql
+5. Seed sample data (optional)
+bashnpm run seed
+This creates 3 sample counselors, their weekly availability, and 2 student accounts for testing.
+6. Run the development server
+bashnpm run dev
+Open http://localhost:3000 in your browser.
 
-- **Role-based access** is enforced in two places:
-  1. Middleware (`src/middleware.ts`) redirects unauthenticated requests to `/login`.
-  2. `requireRole` (`src/lib/auth.ts`) on every protected page gates by role server-side.
-- **Double-booking prevention** relies on a unique partial index on `(counselor_id, appointment_date, start_time) where status = 'booked'` plus RLS-checked inserts from `/api/appointments/book`. Cancelled rows do not block future rebooking.
-- **Slot generation** is pure and isolated in `src/lib/slots.ts`, so it can run both server-side (for the booking page) and as part of request validation in the API route.
-- **Row-Level Security** policies live in `supabase/schema.sql`. Students can only read/write their own appointments; counselors manage their own appointments and availability; availability is publicly readable so students can see open times.
-- **Emails** (`src/lib/email.ts`) no-op gracefully when `RESEND_API_KEY` is unset — useful in local dev.
+📧 Email Notifications
+This app uses Resend to send transactional emails. Students receive a confirmation when they book or cancel, and counselors are notified of any changes to their schedule.
+To test emails locally, create a free Resend account and add your API key to .env.local. You can send to any email address from the Resend sandbox.
 
-## Scripts
+🔒 Security
 
-- `npm run dev` — start dev server
-- `npm run build` — production build
-- `npm run start` — run built app
-- `npm run typecheck` — TypeScript check
-- `npm run lint` — ESLint
-- `npm run seed` — populate sample counselors + students
+All routes are protected by Supabase Auth session checks
+Row Level Security (RLS) is enforced at the database level — users cannot access data that isn't theirs even if they manipulate API calls
+Student IDs are validated against the users table on login
+Environment variables are never exposed to the client (service role key is server-only)
+
+
+📁 Project Structure
+counselconnect/
+├── app/                    # Next.js App Router pages
+│   ├── login/
+│   ├── student/
+│   │   ├── dashboard/
+│   │   ├── book/[counselorId]/
+│   │   └── appointments/
+│   └── counselor/
+│       ├── dashboard/
+│       ├── availability/
+│       └── appointments/
+├── components/             # Reusable UI components
+├── lib/                    # Supabase client, utility functions
+├── supabase/               # Schema SQL and seed script
+└── types/                  # TypeScript types for DB tables
+
+🤝 Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you'd like to change.
+
+Fork the repository
+Create a feature branch (git checkout -b feature/your-feature)
+Commit your changes (git commit -m 'Add your feature')
+Push to the branch (git push origin feature/your-feature)
+Open a Pull Request
+
+
+📄 License
+This project is licensed under the MIT License.
+
+🙏 Acknowledgements
+Built for school counseling departments to make mental health and academic support more accessible to students.
