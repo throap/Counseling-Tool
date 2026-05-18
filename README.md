@@ -176,3 +176,5 @@ versions and the app will not build.
 
 ## License
 MIT
+
+https://docs.google.com/presentation/d/1CIVUqh_IW6kgfoDD8eziGgoByJoobjRgt2y_HXNNGXY/edit?usp=sharing
